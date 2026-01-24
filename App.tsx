@@ -6,10 +6,14 @@ import WallView from './views/WallView';
 import VoteView from './views/VoteView';
 import AdminView from './views/AdminView';
 import ResultsView from './views/ResultsView';
+import LoginModal from './components/LoginModal';
 import { LayoutGrid, Camera, Vote, BarChart3, Home, Star, Settings } from 'lucide-react';
 import { dataService } from './services/dataService';
+import confetti from 'canvas-confetti';
 
 const VOTE_STATUS_KEY = 'hotel_royal_awards_voted_2026';
+const ADMIN_AUTH_KEY = 'hotel_royal_admin_auth_2026';
+const ADMIN_PASSWORD = '6696378611';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>(ViewType.HOME);
@@ -19,6 +23,11 @@ const App: React.FC = () => {
     isRegistrationOpen: true,
     isResultsRevealed: false
   });
+
+  // Admin Auth States
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [pendingView, setPendingView] = useState<ViewType | null>(null);
 
   // 監聽 Firebase 資料
   useEffect(() => {
@@ -35,6 +44,10 @@ const App: React.FC = () => {
     // 3. 檢查本機是否投過票 (投票狀態仍維持在本機，避免重複投票)
     const voted = localStorage.getItem(VOTE_STATUS_KEY);
     if (voted) setHasVoted(true);
+
+    // 4. 檢查管理員登入狀態
+    const adminAuth = localStorage.getItem(ADMIN_AUTH_KEY);
+    if (adminAuth === 'true') setIsAdminLoggedIn(true);
 
     return () => {
       unsubscribeParticipants();
@@ -103,16 +116,56 @@ const App: React.FC = () => {
   // 處理導航切換 (含權限驗證)
   const handleNavigate = (view: ViewType) => {
     if (view === ViewType.ADMIN) {
-      const password = prompt("請輸入管理員密碼：");
-      if (password === "6696378611") {
+      if (isAdminLoggedIn) {
         setCurrentView(view);
       } else {
-        if (password !== null) alert("密碼錯誤！");
-        return;
+        setPendingView(view);
+        setIsLoginModalOpen(true);
       }
     } else {
       setCurrentView(view);
     }
+  };
+
+  const handleLogin = (password: string) => {
+    if (password === ADMIN_PASSWORD) {
+      setIsAdminLoggedIn(true);
+      localStorage.setItem(ADMIN_AUTH_KEY, 'true');
+      if (pendingView) {
+        setCurrentView(pendingView);
+        setPendingView(null);
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const handleLogout = () => {
+    setIsAdminLoggedIn(false);
+    localStorage.removeItem(ADMIN_AUTH_KEY);
+    setCurrentView(ViewType.HOME);
+    alert('已安全登出');
+  };
+
+  const fireConfetti = () => {
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    const random = (min: number, max: number) => Math.random() * (max - min) + min;
+
+    const interval = setInterval(function () {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      // since particles fall down, start a bit higher than random
+      confetti({ ...defaults, particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } });
+      confetti({ ...defaults, particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } });
+    }, 250);
   };
 
   const renderView = () => {
@@ -129,9 +182,18 @@ const App: React.FC = () => {
           onSimulateVotes={() => simulateVotes(5)}
           config={config}
           onUpdateConfig={updateConfig}
+          onLogout={handleLogout}
         />
       );
-      case ViewType.RESULTS: return <ResultsView participants={participants} onFinishReveal={() => updateConfig({ ...config, isResultsRevealed: true })} />;
+      case ViewType.RESULTS: return (
+        <ResultsView
+          participants={participants}
+          onFinishReveal={() => {
+            updateConfig({ ...config, isResultsRevealed: true });
+            fireConfetti();
+          }}
+        />
+      );
       default: return <HomeView onNavigate={handleNavigate} config={config} />;
     }
   };
@@ -175,6 +237,13 @@ const App: React.FC = () => {
           <BarChart3 size={22} /><span className="text-[10px] font-bold">開票</span>
         </button>
       </nav>
+
+      {/* Admin Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onLogin={handleLogin}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
     </div>
   );
 };
