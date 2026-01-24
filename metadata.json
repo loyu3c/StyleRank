@@ -1,0 +1,7 @@
+{
+  "name": "2026 礁溪老爺大酒店，最佳造型獎大PK",
+  "description": "2026 礁溪老爺大酒店專屬造型大賽投票平台。即時照片牆、線上投票與開票統計。",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
