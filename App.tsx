@@ -100,11 +100,26 @@ const App: React.FC = () => {
     }
   };
 
+  // 處理導航切換 (含權限驗證)
+  const handleNavigate = (view: ViewType) => {
+    if (view === ViewType.ADMIN) {
+      const password = prompt("請輸入管理員密碼：");
+      if (password === "6696378611") {
+        setCurrentView(view);
+      } else {
+        if (password !== null) alert("密碼錯誤！");
+        return;
+      }
+    } else {
+      setCurrentView(view);
+    }
+  };
+
   const renderView = () => {
     switch (currentView) {
-      case ViewType.HOME: return <HomeView onNavigate={setCurrentView} config={config} />;
-      case ViewType.REGISTER: return <RegisterView onRegister={handleRegister} onCancel={() => setCurrentView(ViewType.HOME)} isOpen={config.isRegistrationOpen} />;
-      case ViewType.WALL: return <WallView participants={participants} showVotes={config.isResultsRevealed} />;
+      case ViewType.HOME: return <HomeView onNavigate={handleNavigate} config={config} />;
+      case ViewType.REGISTER: return <RegisterView onRegister={handleRegister} onCancel={() => handleNavigate(ViewType.HOME)} isOpen={config.isRegistrationOpen} />;
+      case ViewType.WALL: return <WallView participants={participants} showVotes={config.isResultsRevealed} onVote={handleVote} hasVoted={hasVoted} />;
       case ViewType.VOTE: return <VoteView participants={participants} onVote={handleVote} hasVoted={hasVoted} />;
       case ViewType.ADMIN: return (
         <AdminView
@@ -117,7 +132,7 @@ const App: React.FC = () => {
         />
       );
       case ViewType.RESULTS: return <ResultsView participants={participants} onFinishReveal={() => updateConfig({ ...config, isResultsRevealed: true })} />;
-      default: return <HomeView onNavigate={setCurrentView} config={config} />;
+      default: return <HomeView onNavigate={handleNavigate} config={config} />;
     }
   };
 
@@ -129,10 +144,10 @@ const App: React.FC = () => {
           <h1 className="font-display text-2xl tracking-widest text-white">2026 礁溪老爺大酒店</h1>
         </div>
         <nav className="flex items-center gap-2">
-          <NavItem active={currentView === ViewType.HOME} onClick={() => setCurrentView(ViewType.HOME)} icon={<Home size={18} />} label="首頁" />
-          <NavItem active={currentView === ViewType.WALL} onClick={() => setCurrentView(ViewType.WALL)} icon={<LayoutGrid size={18} />} label="照片牆" />
-          <NavItem active={currentView === ViewType.RESULTS} onClick={() => setCurrentView(ViewType.RESULTS)} icon={<TrophyIcon size={18} />} label="開票盛典" />
-          <NavItem active={currentView === ViewType.ADMIN} onClick={() => setCurrentView(ViewType.ADMIN)} icon={<Settings size={18} />} label="後台管理" />
+          <NavItem active={currentView === ViewType.HOME} onClick={() => handleNavigate(ViewType.HOME)} icon={<Home size={18} />} label="首頁" />
+          <NavItem active={currentView === ViewType.WALL} onClick={() => handleNavigate(ViewType.WALL)} icon={<LayoutGrid size={18} />} label="照片牆" />
+          <NavItem active={currentView === ViewType.RESULTS} onClick={() => handleNavigate(ViewType.RESULTS)} icon={<TrophyIcon size={18} />} label="開票盛典" />
+          <NavItem active={currentView === ViewType.ADMIN} onClick={() => handleNavigate(ViewType.ADMIN)} icon={<Settings size={18} />} label="後台管理" />
         </nav>
       </header>
 
@@ -141,22 +156,22 @@ const App: React.FC = () => {
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 h-16 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-around px-4 z-50 md:hidden">
-        <button onClick={() => setCurrentView(ViewType.HOME)} className={`flex flex-col items-center gap-1 ${currentView === ViewType.HOME ? 'text-amber-400' : 'text-slate-500'}`}>
+        <button onClick={() => handleNavigate(ViewType.HOME)} className={`flex flex-col items-center gap-1 ${currentView === ViewType.HOME ? 'text-amber-400' : 'text-slate-500'}`}>
           <Home size={22} /><span className="text-[10px] font-bold">首頁</span>
         </button>
-        <button onClick={() => setCurrentView(ViewType.WALL)} className={`flex flex-col items-center gap-1 ${currentView === ViewType.WALL ? 'text-amber-400' : 'text-slate-500'}`}>
+        <button onClick={() => handleNavigate(ViewType.WALL)} className={`flex flex-col items-center gap-1 ${currentView === ViewType.WALL ? 'text-amber-400' : 'text-slate-500'}`}>
           <LayoutGrid size={22} /><span className="text-[10px] font-bold">照片牆</span>
         </button>
-        <button onClick={() => config.isRegistrationOpen ? setCurrentView(ViewType.REGISTER) : alert('上傳已截止')} className="flex flex-col items-center -mt-8">
+        <button onClick={() => config.isRegistrationOpen ? handleNavigate(ViewType.REGISTER) : alert('上傳已截止')} className="flex flex-col items-center -mt-8">
           <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4 border-[#0a0f1a] ${config.isRegistrationOpen ? 'bg-gradient-to-tr from-amber-400 to-orange-600 shadow-amber-500/30' : 'bg-slate-700 shadow-none'}`}>
             <Camera size={26} className="text-white" />
           </div>
           <span className={`text-[10px] font-bold mt-1 ${config.isRegistrationOpen ? 'text-amber-400' : 'text-slate-500'}`}>參加</span>
         </button>
-        <button onClick={() => setCurrentView(ViewType.VOTE)} className={`flex flex-col items-center gap-1 ${currentView === ViewType.VOTE ? 'text-amber-400' : 'text-slate-500'}`}>
+        <button onClick={() => handleNavigate(ViewType.VOTE)} className={`flex flex-col items-center gap-1 ${currentView === ViewType.VOTE ? 'text-amber-400' : 'text-slate-500'}`}>
           <Vote size={22} /><span className="text-[10px] font-bold">投票</span>
         </button>
-        <button onClick={() => setCurrentView(ViewType.RESULTS)} className={`flex flex-col items-center gap-1 ${currentView === ViewType.RESULTS ? 'text-amber-400' : 'text-slate-500'}`}>
+        <button onClick={() => handleNavigate(ViewType.RESULTS)} className={`flex flex-col items-center gap-1 ${currentView === ViewType.RESULTS ? 'text-amber-400' : 'text-slate-500'}`}>
           <BarChart3 size={22} /><span className="text-[10px] font-bold">開票</span>
         </button>
       </nav>

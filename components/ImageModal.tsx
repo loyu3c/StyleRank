@@ -7,9 +7,10 @@ interface ImageModalProps {
     onClose: () => void;
     onVote?: (id: string) => void;
     hasVoted?: boolean;
+    showVotes?: boolean;
 }
 
-const ImageModal: React.FC<ImageModalProps> = ({ participant, onClose, onVote, hasVoted }) => {
+const ImageModal: React.FC<ImageModalProps> = ({ participant, onClose, onVote, hasVoted, showVotes = false }) => {
     if (!participant) return null;
 
     const handleVoteClick = () => {
@@ -69,14 +70,16 @@ const ImageModal: React.FC<ImageModalProps> = ({ participant, onClose, onVote, h
                                 </p>
                             </div>
 
-                            <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-800 space-y-2">
-                                <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-                                    <User size={16} /> 目前票數
+                            {showVotes && (
+                                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-800 space-y-2">
+                                    <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                                        <User size={16} /> 目前票數
+                                    </div>
+                                    <p className="text-2xl font-bold text-white">
+                                        {participant.votes} <span className="text-sm text-slate-500 font-normal">票</span>
+                                    </p>
                                 </div>
-                                <p className="text-2xl font-bold text-white">
-                                    {participant.votes} <span className="text-sm text-slate-500 font-normal">票</span>
-                                </p>
-                            </div>
+                            )}
                         </div>
                     </div>
 
@@ -86,8 +89,8 @@ const ImageModal: React.FC<ImageModalProps> = ({ participant, onClose, onVote, h
                                 onClick={handleVoteClick}
                                 disabled={hasVoted}
                                 className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all ${hasVoted
-                                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-400 hover:to-orange-500 shadow-lg shadow-amber-500/20 active:scale-95'
+                                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-400 hover:to-orange-500 shadow-lg shadow-amber-500/20 active:scale-95'
                                     }`}
                             >
                                 {hasVoted ? (

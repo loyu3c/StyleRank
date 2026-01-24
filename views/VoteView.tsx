@@ -68,20 +68,10 @@ const VoteView: React.FC<VoteViewProps> = ({ participants, onVote, hasVoted }) =
               >
                 <Card
                   participant={p}
-                  // Card 內部的 onVote 會觸發阻止冒泡，但我們希望主要透過 Modal 投票，
-                  // 或保留 Card 上的按鈕作為快速投票 (需確認 Card 實作)。
-                  // 這裡先傳遞 undefined 讓 Card 變成 purely display? 
-                  // 不，Card 需要顯示投票按鈕。
-                  // 為了 UX 一致，我們可以修改 Card，但使用者只要求「能點擊縮圖放大」。
-                  // 如果 Card 上的按鈕按下，應該也要彈出檢查?
-                  // 原本 VoteView 的 Card onVote 是 handleConfirmVote。
-                  // 這裡我們可以讓 Card 的按鈕直接打開 Modal 或是保留原狀。
-                  // 為了簡化，Card 點擊整張卡片開 Modal，按鈕點擊開 Modal 比較保險。
-                  // 但 Card 內按鈕有 stopPropagation 嗎？
-                  // 假設我們先保留 Card 的 onVote 事件，但改為開啟 Modal
                   onVote={() => setSelectedParticipant(p)}
                   hasVoted={hasVoted}
                   isVoting
+                // Card component also has showVotes, default is false/undefined which is fine for VoteView
                 />
               </div>
             ))}
@@ -98,6 +88,7 @@ const VoteView: React.FC<VoteViewProps> = ({ participants, onVote, hasVoted }) =
         onClose={() => setSelectedParticipant(null)}
         onVote={onVote}
         hasVoted={hasVoted}
+        showVotes={false} // Always hide votes in voting view
       />
     </>
   );

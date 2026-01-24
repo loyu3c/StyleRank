@@ -161,6 +161,7 @@ const WallView: React.FC<WallViewProps> = ({ participants, showVotes = false, on
         onClose={() => setSelectedParticipant(null)}
         onVote={onVote}
         hasVoted={hasVoted}
+        showVotes={showVotes}
       />
     </>
   );
