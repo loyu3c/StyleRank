@@ -72,11 +72,22 @@ export const dataService = {
     },
 
     // 投票
-    voteForParticipant: async (id: string) => {
+    voteForParticipant: async (id: string, voterInfo?: { empId: string, name: string }) => {
+        // Increment count
         const participantRef = doc(db, PARTICIPANTS_COLLECTION, id);
         await updateDoc(participantRef, {
             votes: increment(1)
         });
+
+        // Record voter info if provided
+        if (voterInfo) {
+            await addDoc(collection(db, 'votes'), {
+                participantId: id,
+                empId: voterInfo.empId,
+                name: voterInfo.name,
+                timestamp: Date.now()
+            });
+        }
     },
 
     // 更新設定
@@ -84,6 +95,12 @@ export const dataService = {
         const configRef = doc(db, CONFIG_COLLECTION, CONFIG_DOC_ID);
         // Fix: use setDoc directly which handles both create and update
         await setDoc(configRef, config);
+    },
+
+    // 取得所有投票名單 (供抽獎用)
+    getAllVotes: async () => {
+        const snapshot = await getDocs(collection(db, 'votes'));
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
     },
 
     // 重置所有資料 (危險操作)
@@ -96,9 +113,20 @@ export const dataService = {
             batch.delete(doc.ref);
         });
 
-        // 重置設定
+        // 刪除所有投票紀錄 (NEW) - 這可能需要大量刪除，如果資料量大應使用 Admin SDK 或 Cloud Functions。
+        // 前端 Delete 限制 500 筆 batch。暫時先做基本清空，假設測試量不大。
+        const votesSnapshot = await getDocs(collection(db, 'votes'));
+        votesSnapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+
+        // 重置設定並更新重置時間戳記
         const configRef = doc(db, CONFIG_COLLECTION, CONFIG_DOC_ID);
-        batch.set(configRef, { isRegistrationOpen: true, isResultsRevealed: false });
+        batch.set(configRef, {
+            isRegistrationOpen: true,
+            isResultsRevealed: false,
+            lastResetTimestamp: Date.now() // Record reset time
+        });
 
         await batch.commit();
     }

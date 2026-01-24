@@ -5,7 +5,7 @@ import { X, Vote, Trophy, User } from 'lucide-react';
 interface ImageModalProps {
     participant: Participant | null;
     onClose: () => void;
-    onVote?: (id: string) => void;
+    onVote?: (id: string, voterInfo?: { empId: string, name: string }) => void;
     hasVoted?: boolean;
     showVotes?: boolean;
 }

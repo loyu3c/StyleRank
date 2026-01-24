@@ -18,7 +18,14 @@ export enum ViewType {
   RESULTS = 'results'
 }
 
+
 export interface ActivityConfig {
   isRegistrationOpen: boolean;
   isResultsRevealed: boolean;
+  lastResetTimestamp?: number;
+}
+
+export interface VoterInfo {
+  empId: string;
+  name: string;
 }

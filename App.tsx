@@ -13,6 +13,7 @@ import confetti from 'canvas-confetti';
 
 const VOTE_STATUS_KEY = 'hotel_royal_awards_voted_2026';
 const ADMIN_AUTH_KEY = 'hotel_royal_admin_auth_2026';
+const LAST_RESET_KEY = 'hotel_royal_last_reset_2026';
 const ADMIN_PASSWORD = '6696378611';
 
 const App: React.FC = () => {
@@ -39,9 +40,22 @@ const App: React.FC = () => {
     // 2. 監聽全域設定
     const unsubscribeConfig = dataService.listenToConfig((data) => {
       setConfig(data);
+
+      // Check for global reset
+      if (data.lastResetTimestamp) {
+        const localLastReset = localStorage.getItem(LAST_RESET_KEY);
+        // If server reset time is newer than local, clear local vote status
+        if (!localLastReset || Number(localLastReset) < data.lastResetTimestamp) {
+          localStorage.removeItem(VOTE_STATUS_KEY);
+          localStorage.setItem(LAST_RESET_KEY, String(data.lastResetTimestamp));
+          setHasVoted(false);
+          // alert('活動已重置，您可以重新投票！'); // Optional: notify user
+        }
+      }
     });
 
     // 3. 檢查本機是否投過票 (投票狀態仍維持在本機，避免重複投票)
+    // Note: This logic now runs after reset check to ensure we don't restore old state inappropriately
     const voted = localStorage.getItem(VOTE_STATUS_KEY);
     if (voted) setHasVoted(true);
 
@@ -74,10 +88,10 @@ const App: React.FC = () => {
     }
   }, [config.isRegistrationOpen]);
 
-  const handleVote = useCallback(async (participantId: string) => {
+  const handleVote = useCallback(async (participantId: string, voterInfo?: { empId: string, name: string }) => {
     if (hasVoted) return;
     try {
-      await dataService.voteForParticipant(participantId);
+      await dataService.voteForParticipant(participantId, voterInfo);
       setHasVoted(true);
       localStorage.setItem(VOTE_STATUS_KEY, 'true');
     } catch (e) {
@@ -87,13 +101,14 @@ const App: React.FC = () => {
   }, [hasVoted]);
 
   const resetData = async () => {
-    if (window.confirm('確定要清除所有雲端資料與投票嗎？此操作不可逆！')) {
+    if (window.confirm('確定要清除所有雲端資料與投票嗎？此操作不可逆！\n注意：這也會清除所有使用者的投票狀態。')) {
       await dataService.resetAllData();
       // 本機狀態也要清除，方便測試
       localStorage.removeItem(VOTE_STATUS_KEY);
       setHasVoted(false);
     }
   };
+
 
   const updateConfig = async (newConfig: ActivityConfig) => {
     await dataService.updateConfig(newConfig);

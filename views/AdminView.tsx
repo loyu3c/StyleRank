@@ -1,7 +1,8 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Participant, ActivityConfig } from '../types';
-import { Trophy, RefreshCcw, PlayCircle, UserPlus, Fingerprint, Lock, Unlock, Settings2, LogOut } from 'lucide-react';
+import { Trophy, RefreshCcw, PlayCircle, UserPlus, Fingerprint, Lock, Unlock, Settings2, LogOut, Gift, Sparkles, X } from 'lucide-react';
+import { dataService } from '../services/dataService';
+import confetti from 'canvas-confetti';
 
 interface AdminViewProps {
   participants: Participant[];
@@ -84,20 +85,23 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
         </div>
       </div>
 
-      {/* Simulation Tools */}
+      {/* Tools Section */}
       <div className="bg-amber-500/5 border border-amber-500/20 p-8 rounded-3xl space-y-6">
         <div className="flex items-center gap-2 text-amber-400">
           <PlayCircle size={24} />
-          <h3 className="text-xl font-bold text-amber-500">Demo 模擬工具</h3>
+          <h3 className="text-xl font-bold text-amber-500">工具箱</h3>
         </div>
         <div className="flex flex-wrap gap-4">
-          <button onClick={onSimulateParticipant} className="flex items-center gap-2 px-6 py-4 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl font-bold transition-all shadow-lg active:scale-95">
+          <LuckyDrawButton />
+
+          <button onClick={onSimulateParticipant} className="flex items-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-slate-700 active:scale-95">
             <UserPlus size={20} /> 模擬新增一位參加者
           </button>
+
           <button
             onClick={onSimulateVotes}
             disabled={participants.length === 0}
-            className="flex items-center gap-2 px-6 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all disabled:bg-slate-700 disabled:text-slate-500 active:scale-95"
+            className="flex items-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-slate-700 disabled:opacity-50 active:scale-95"
           >
             <Fingerprint size={20} /> 隨機產生 5 張選票
           </button>
@@ -108,6 +112,102 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
         <p className="text-slate-500">目前共有 <span className="text-white font-bold">{participants.length}</span> 位參加者，總票數 <span className="text-white font-bold">{participants.reduce((a, b) => a + b.votes, 0)}</span> 票</p>
       </div>
     </div>
+  );
+};
+
+const LuckyDrawButton = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [winner, setWinner] = useState<{ empId: string, name: string } | null>(null);
+
+  const handleDraw = async () => {
+    setIsDrawing(true);
+    setWinner(null);
+    try {
+      const votes = await dataService.getAllVotes();
+      if (votes.length === 0) {
+        alert("目前沒有投票資料可供抽獎！");
+        setIsDrawing(false);
+        return;
+      }
+
+      // Shuffle animation effect
+      let count = 0;
+      const interval = setInterval(() => {
+        count++;
+        if (count > 20) {
+          clearInterval(interval);
+          // Pick winner
+          const randomVote = votes[Math.floor(Math.random() * votes.length)];
+          setWinner({ empId: randomVote.empId, name: randomVote.name });
+          setIsDrawing(false);
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
+      }, 100);
+
+    } catch (e) {
+      console.error(e);
+      alert("抽獎失敗");
+      setIsDrawing(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="flex items-center gap-2 px-6 py-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white rounded-2xl font-bold transition-all shadow-lg active:scale-95"
+      >
+        <Gift size={20} /> 參加獎抽獎
+      </button>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setIsOpen(false)} />
+          <div className="relative w-full max-w-md bg-slate-900 rounded-3xl border border-pink-500/50 p-8 shadow-2xl flex flex-col items-center text-center space-y-8 animate-in zoom-in-95">
+            <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white">
+              <X size={24} />
+            </button>
+
+            <div className="space-y-2">
+              <div className="inline-flex p-4 bg-pink-500/20 rounded-full text-pink-500 mb-2">
+                <Gift size={48} />
+              </div>
+              <h3 className="text-3xl font-bold text-white">投票參加獎</h3>
+              <p className="text-slate-400">從所有投票紀錄中抽出一位幸運兒</p>
+            </div>
+
+            {winner ? (
+              <div className="w-full p-6 bg-gradient-to-br from-pink-500/20 to-rose-600/20 border border-pink-500/50 rounded-2xl animate-in zoom-in duration-500">
+                <p className="text-pink-400 text-sm font-bold uppercase tracking-widest mb-2">WINNER</p>
+                <h4 className="text-4xl font-black text-white mb-2">{winner.name}</h4>
+                <p className="text-xl text-white/80 font-mono">{winner.empId}</p>
+              </div>
+            ) : isDrawing ? (
+              <div className="w-full p-8 flex items-center justify-center">
+                <Sparkles className="animate-spin text-pink-500" size={48} />
+              </div>
+            ) : (
+              <div className="w-full h-24 flex items-center justify-center border-2 border-dashed border-slate-700 rounded-2xl text-slate-600 font-bold">
+                誰是幸運兒？
+              </div>
+            )}
+
+            <button
+              onClick={handleDraw}
+              disabled={isDrawing}
+              className="w-full py-4 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold rounded-xl text-xl shadow-lg shadow-pink-500/20 active:scale-95 disabled:opacity-50 transition-all"
+            >
+              {isDrawing ? '抽獎中...' : winner ? '再抽一位' : '開始抽獎'}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
