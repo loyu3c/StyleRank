@@ -5,7 +5,7 @@ import { compressImage } from '../services/imageUtils';
 import { Camera, Upload, Loader2, X, Sparkles, Lock } from 'lucide-react';
 
 interface RegisterViewProps {
-  onRegister: (p: Participant) => void;
+  onRegister: (p: Participant) => Promise<void>;
   onCancel: () => void;
   // Fix Error in App.tsx on line 111: Property 'isOpen' does not exist on type 'IntrinsicAttributes & RegisterViewProps'
   isOpen: boolean;
@@ -33,32 +33,39 @@ const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onCancel, isOpe
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !theme || !photo || !isOpen) {
       setError(isOpen ? '請填寫完整資訊並上傳照片' : '目前非報名時間');
       return;
     }
 
-    const newParticipant: Participant = {
-      id: crypto.randomUUID(),
-      name,
-      theme,
-      photoUrl: photo,
-      timestamp: Date.now(),
-      votes: 0,
-      // Fix Error in views/RegisterView.tsx on line 41: Property 'entryNumber' is missing in type but required in type 'Participant'
-      entryNumber: 0
-    };
-    onRegister(newParticipant);
+    try {
+      setIsProcessing(true);
+      const newParticipant: Participant = {
+        id: crypto.randomUUID(),
+        name,
+        theme,
+        photoUrl: photo,
+        timestamp: Date.now(),
+        entryNumber: 0,
+        votes: 0
+      };
+      await onRegister(newParticipant);
+    } catch (err) {
+      console.error(err);
+      setError('上傳發生錯誤，請稍後再試');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <div className="max-w-md mx-auto py-4 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-           <Sparkles className="text-amber-400" />
-           <h2 className="text-2xl font-bold text-white">參加大PK</h2>
+          <Sparkles className="text-amber-400" />
+          <h2 className="text-2xl font-bold text-white">參加大PK</h2>
         </div>
         <button onClick={onCancel} className="text-slate-400 hover:text-white">
           <X size={24} />
@@ -93,26 +100,26 @@ const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onCancel, isOpe
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-slate-400 text-sm font-medium ml-1">參賽大名</label>
-            <input 
-              type="text" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              placeholder="請輸入姓名" 
-              className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
-              required 
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="請輸入姓名"
+              className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              required
               disabled={!isOpen}
             />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-slate-400 text-sm font-medium ml-1">服裝主題說明</label>
-            <input 
-              type="text" 
-              value={theme} 
-              onChange={(e) => setTheme(e.target.value)} 
-              placeholder="例如：優雅紳士、華麗禮服" 
-              className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
-              required 
+            <input
+              type="text"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              placeholder="例如：優雅紳士、華麗禮服"
+              className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              required
               disabled={!isOpen}
             />
           </div>
@@ -120,9 +127,9 @@ const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onCancel, isOpe
 
         {error && <p className="text-rose-500 text-sm text-center font-medium bg-rose-500/10 py-3 rounded-xl">{error}</p>}
 
-        <button 
-          type="submit" 
-          disabled={isProcessing || !photo || !name || !theme || !isOpen} 
+        <button
+          type="submit"
+          disabled={isProcessing || !photo || !name || !theme || !isOpen}
           className={`w-full py-4 rounded-2xl font-bold text-white text-lg flex items-center justify-center gap-2 transition-all shadow-xl ${isProcessing || !photo || !name || !theme || !isOpen ? 'bg-slate-700 cursor-not-allowed text-slate-500' : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-500/20 active:scale-95'}`}
         >
           {isProcessing ? (
