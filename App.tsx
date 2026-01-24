@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { ViewType, Participant, ActivityConfig } from './types';
 import HomeView from './views/HomeView';
@@ -8,10 +7,9 @@ import VoteView from './views/VoteView';
 import AdminView from './views/AdminView';
 import ResultsView from './views/ResultsView';
 import { LayoutGrid, Camera, Vote, BarChart3, Home, Star, Settings } from 'lucide-react';
+import { dataService } from './services/dataService';
 
-const STORAGE_KEY = 'hotel_royal_awards_participants_2026';
 const VOTE_STATUS_KEY = 'hotel_royal_awards_voted_2026';
-const CONFIG_KEY = 'hotel_royal_awards_config_2026';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>(ViewType.HOME);
@@ -22,87 +20,84 @@ const App: React.FC = () => {
     isResultsRevealed: false
   });
 
+  // 監聽 Firebase 資料
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setParticipants(JSON.parse(saved));
-    
+    // 1. 監聽參賽者
+    const unsubscribeParticipants = dataService.listenToParticipants((data) => {
+      setParticipants(data);
+    });
+
+    // 2. 監聽全域設定
+    const unsubscribeConfig = dataService.listenToConfig((data) => {
+      setConfig(data);
+    });
+
+    // 3. 檢查本機是否投過票 (投票狀態仍維持在本機，避免重複投票)
     const voted = localStorage.getItem(VOTE_STATUS_KEY);
     if (voted) setHasVoted(true);
 
-    const savedConfig = localStorage.getItem(CONFIG_KEY);
-    if (savedConfig) setConfig(JSON.parse(savedConfig));
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue) setParticipants(JSON.parse(e.newValue));
-      if (e.key === VOTE_STATUS_KEY) setHasVoted(!!e.newValue);
-      if (e.key === CONFIG_KEY && e.newValue) setConfig(JSON.parse(e.newValue));
+    return () => {
+      unsubscribeParticipants();
+      unsubscribeConfig();
     };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const saveParticipants = (newParticipants: Participant[]) => {
-    setParticipants(newParticipants);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newParticipants));
-  };
-
-  const saveConfig = (newConfig: ActivityConfig) => {
-    setConfig(newConfig);
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(newConfig));
-  };
-
-  const handleRegister = useCallback((newParticipant: Participant) => {
+  const handleRegister = useCallback(async (newParticipant: Participant) => {
     if (!config.isRegistrationOpen) return;
-    const entryNumber = participants.length + 1;
-    const updated = [...participants, { ...newParticipant, entryNumber }];
-    saveParticipants(updated);
-    setCurrentView(ViewType.WALL);
-  }, [participants, config.isRegistrationOpen]);
+    try {
+      // 这里的 newParticipant.photoUrl 其實是 base64，我們需要傳給 dataService 處理上傳
+      const { name, theme, photoUrl } = newParticipant;
+      if (!photoUrl) return;
 
-  const handleVote = useCallback((participantId: string) => {
+      // 顯示 loading 或提示 (這裏簡單用 alert，實際上 RegisterView 應該還有 loading state)
+      // 注意：這裡直接 await，RegisterView 沒有傳遞這 promise，但沒關係，這會觸發 Firestore 更新
+      await dataService.addParticipant({ name, theme }, photoUrl);
+
+      setCurrentView(ViewType.WALL);
+      alert('報名成功！照片已上傳至展示牆。');
+    } catch (e) {
+      console.error(e);
+      alert('上傳失敗，請稍後再試。');
+    }
+  }, [config.isRegistrationOpen]);
+
+  const handleVote = useCallback(async (participantId: string) => {
     if (hasVoted) return;
-    const updated = participants.map(p => 
-      p.id === participantId ? { ...p, votes: p.votes + 1 } : p
-    );
-    saveParticipants(updated);
-    setHasVoted(true);
-    localStorage.setItem(VOTE_STATUS_KEY, 'true');
-  }, [participants, hasVoted]);
+    try {
+      await dataService.voteForParticipant(participantId);
+      setHasVoted(true);
+      localStorage.setItem(VOTE_STATUS_KEY, 'true');
+    } catch (e) {
+      console.error(e);
+      alert('投票失敗');
+    }
+  }, [hasVoted]);
 
-  const resetData = () => {
-    if (window.confirm('確定要清除所有參賽資料與投票嗎？')) {
-      localStorage.removeItem(STORAGE_KEY);
+  const resetData = async () => {
+    if (window.confirm('確定要清除所有雲端資料與投票嗎？此操作不可逆！')) {
+      await dataService.resetAllData();
+      // 本機狀態也要清除，方便測試
       localStorage.removeItem(VOTE_STATUS_KEY);
-      setParticipants([]);
       setHasVoted(false);
-      saveConfig({ isRegistrationOpen: true, isResultsRevealed: false });
     }
   };
 
-  const simulateParticipant = () => {
-    const names = ["林大華", "陳美玲", "張小明", "李國強", "王曉芬", "周杰克", "蔡依林"];
-    const themes = ["奢華晚宴風", "礁溪文青感", "熱帶夏威夷", "未來科技感", "和風浴衣", "復古爵士", "森林系精靈"];
-    const randomId = crypto.randomUUID();
-    const newP: Participant = {
-      id: randomId,
-      name: names[Math.floor(Math.random() * names.length)] + (participants.length + 1),
-      theme: themes[Math.floor(Math.random() * themes.length)],
-      photoUrl: `https://picsum.photos/seed/${randomId}/600/600`,
-      timestamp: Date.now(),
-      votes: Math.floor(Math.random() * 5),
-      entryNumber: participants.length + 1
-    };
-    saveParticipants([...participants, newP]);
+  const updateConfig = async (newConfig: ActivityConfig) => {
+    await dataService.updateConfig(newConfig);
   };
 
-  const simulateVotes = (count: number = 5) => {
+  // 模擬功能 (保留但改寫為寫入 Firebase)
+  const simulateParticipant = async () => {
+    alert("模擬功能需配合真實圖片上傳邏輯，目前停用。");
+  };
+
+  const simulateVotes = async (count: number = 5) => {
     if (participants.length === 0) return;
-    let updated = [...participants];
+    // 隨機投 5 票
     for (let i = 0; i < count; i++) {
-      const randomIndex = Math.floor(Math.random() * updated.length);
-      updated[randomIndex] = { ...updated[randomIndex], votes: updated[randomIndex].votes + 1 };
+      const randomP = participants[Math.floor(Math.random() * participants.length)];
+      await dataService.voteForParticipant(randomP.id);
     }
-    saveParticipants(updated);
   };
 
   const renderView = () => {
@@ -112,16 +107,16 @@ const App: React.FC = () => {
       case ViewType.WALL: return <WallView participants={participants} showVotes={config.isResultsRevealed} />;
       case ViewType.VOTE: return <VoteView participants={participants} onVote={handleVote} hasVoted={hasVoted} />;
       case ViewType.ADMIN: return (
-        <AdminView 
-          participants={participants} 
-          onReset={resetData} 
+        <AdminView
+          participants={participants}
+          onReset={resetData}
           onSimulateParticipant={simulateParticipant}
           onSimulateVotes={() => simulateVotes(5)}
           config={config}
-          onUpdateConfig={saveConfig}
+          onUpdateConfig={updateConfig}
         />
       );
-      case ViewType.RESULTS: return <ResultsView participants={participants} onFinishReveal={() => saveConfig({ ...config, isResultsRevealed: true })} />;
+      case ViewType.RESULTS: return <ResultsView participants={participants} onFinishReveal={() => updateConfig({ ...config, isResultsRevealed: true })} />;
       default: return <HomeView onNavigate={setCurrentView} config={config} />;
     }
   };
@@ -134,10 +129,10 @@ const App: React.FC = () => {
           <h1 className="font-display text-2xl tracking-widest text-white">2026 礁溪老爺大酒店</h1>
         </div>
         <nav className="flex items-center gap-2">
-          <NavItem active={currentView === ViewType.HOME} onClick={() => setCurrentView(ViewType.HOME)} icon={<Home size={18}/>} label="首頁" />
-          <NavItem active={currentView === ViewType.WALL} onClick={() => setCurrentView(ViewType.WALL)} icon={<LayoutGrid size={18}/>} label="照片牆" />
-          <NavItem active={currentView === ViewType.RESULTS} onClick={() => setCurrentView(ViewType.RESULTS)} icon={<TrophyIcon size={18}/>} label="開票盛典" />
-          <NavItem active={currentView === ViewType.ADMIN} onClick={() => setCurrentView(ViewType.ADMIN)} icon={<Settings size={18}/>} label="後台管理" />
+          <NavItem active={currentView === ViewType.HOME} onClick={() => setCurrentView(ViewType.HOME)} icon={<Home size={18} />} label="首頁" />
+          <NavItem active={currentView === ViewType.WALL} onClick={() => setCurrentView(ViewType.WALL)} icon={<LayoutGrid size={18} />} label="照片牆" />
+          <NavItem active={currentView === ViewType.RESULTS} onClick={() => setCurrentView(ViewType.RESULTS)} icon={<TrophyIcon size={18} />} label="開票盛典" />
+          <NavItem active={currentView === ViewType.ADMIN} onClick={() => setCurrentView(ViewType.ADMIN)} icon={<Settings size={18} />} label="後台管理" />
         </nav>
       </header>
 
@@ -177,7 +172,7 @@ const NavItem = ({ active, onClick, icon, label }: { active: boolean, onClick: (
 
 const TrophyIcon = ({ size, className }: { size: number, className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" /><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
   </svg>
 );
 
