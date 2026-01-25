@@ -180,7 +180,9 @@ const App: React.FC = () => {
     };
 
     try {
-      await dataService.addParticipant(mock, mock.photoUrl);
+      // 使用 addMockParticipant 以跳過圖片上傳流程
+      await dataService.addMockParticipant(mock, mock.photoUrl);
+      alert("模擬新增成功！");
     } catch (e) {
       console.error(e);
       alert("模擬新增失敗");

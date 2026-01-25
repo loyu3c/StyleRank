@@ -71,6 +71,27 @@ export const dataService = {
         }
     },
 
+    // 模擬新增參賽者 (直接使用外部圖片連結，不須上傳)
+    addMockParticipant: async (participant: Omit<Participant, 'id' | 'entryNumber' | 'timestamp' | 'votes' | 'photoUrl'>, photoUrl: string) => {
+        try {
+            // 1. 取得目前數量以產生編號
+            const snapshot = await getDocs(collection(db, PARTICIPANTS_COLLECTION));
+            const entryNumber = snapshot.size + 1;
+
+            // 2. 寫入 Firestore
+            await addDoc(collection(db, PARTICIPANTS_COLLECTION), {
+                ...participant,
+                photoUrl,
+                entryNumber,
+                votes: 0, // Mock users start with 0 or random? User asked specifically for "votes also need change", but simulated votes are separate button.
+                timestamp: Date.now()
+            });
+        } catch (error) {
+            console.error("Error adding mock participant: ", error);
+            throw error;
+        }
+    },
+
     // 投票
     voteForParticipant: async (id: string, voterInfo?: { empId: string, name: string }) => {
         // Increment count
