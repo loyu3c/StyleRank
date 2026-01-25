@@ -103,7 +103,7 @@ const App: React.FC = () => {
       console.error(e);
       alert('投票失敗');
     }
-  }, [hasVoted]);
+  }, [hasVoted, config.isVotingOpen]);
 
   const resetData = async () => {
     if (window.confirm('確定要清除所有雲端資料與投票嗎？此操作不可逆！\n注意：這也會清除所有使用者的投票狀態。')) {
@@ -227,7 +227,7 @@ const App: React.FC = () => {
       case ViewType.HOME: return <HomeView onNavigate={handleNavigate} config={config} />;
       case ViewType.REGISTER: return <RegisterView onRegister={handleRegister} onCancel={() => handleNavigate(ViewType.HOME)} isOpen={config.isRegistrationOpen} />;
       case ViewType.WALL: return <WallView participants={participants} showVotes={config.isResultsRevealed} onVote={handleVote} hasVoted={hasVoted} />;
-      case ViewType.VOTE: return <VoteView participants={participants} onVote={handleVote} hasVoted={hasVoted} />;
+      case ViewType.VOTE: return <VoteView participants={participants} onVote={handleVote} hasVoted={hasVoted} isVotingOpen={config.isVotingOpen} />;
       case ViewType.ADMIN: return (
         <AdminView
           participants={participants}

@@ -8,9 +8,10 @@ interface ImageModalProps {
     onVote?: (id: string, voterInfo?: { empId: string, name: string }) => void;
     hasVoted?: boolean;
     showVotes?: boolean;
+    isVotingOpen?: boolean;
 }
 
-const ImageModal: React.FC<ImageModalProps> = ({ participant, onClose, onVote, hasVoted, showVotes = false }) => {
+const ImageModal: React.FC<ImageModalProps> = ({ participant, onClose, onVote, hasVoted, showVotes = false, isVotingOpen = true }) => {
     const [empId, setEmpId] = useState('');
     const [name, setName] = useState('');
     const [showForm, setShowForm] = useState(false);
@@ -119,14 +120,16 @@ const ImageModal: React.FC<ImageModalProps> = ({ participant, onClose, onVote, h
                                 {onVote ? (
                                     <button
                                         onClick={handleInitialVoteClick}
-                                        disabled={hasVoted}
-                                        className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all ${hasVoted
+                                        disabled={hasVoted || !isVotingOpen}
+                                        className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all ${hasVoted || !isVotingOpen
                                             ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                                             : 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-400 hover:to-orange-500 shadow-lg shadow-amber-500/20 active:scale-95'
                                             }`}
                                     >
                                         {hasVoted ? (
-                                            <>已完成投票</>
+                                            <>自完成投票</>
+                                        ) : !isVotingOpen ? (
+                                            <>投票已截止</>
                                         ) : (
                                             <>
                                                 <Vote size={24} /> 投給我一票

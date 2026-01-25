@@ -9,10 +9,11 @@ interface CardProps {
   showVotes?: boolean;
   hasVoted?: boolean;
   isVoting?: boolean;
+  isVotingOpen?: boolean;
 }
 
 // 使用 React.memo 確保只有當該參加者的資料改變時才重新渲染，這對 100 人規模非常重要
-const Card: React.FC<CardProps> = React.memo(({ participant, onVote, showVotes, hasVoted, isVoting }) => {
+const Card: React.FC<CardProps> = React.memo(({ participant, onVote, showVotes, hasVoted, isVoting, isVotingOpen = true }) => {
   return (
     <div className="bg-slate-800/80 rounded-xl overflow-hidden shadow-lg border border-slate-700/50 transition-all hover:border-amber-500/30 h-full flex flex-col group relative">
       <div className="relative aspect-square w-full overflow-hidden bg-slate-900">
@@ -22,13 +23,13 @@ const Card: React.FC<CardProps> = React.memo(({ participant, onVote, showVotes, 
           {String(participant.entryNumber).padStart(3, '0')}
         </div>
 
-        <img 
-          src={participant.photoUrl} 
-          alt={participant.name} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-          loading="lazy" 
+        <img
+          src={participant.photoUrl}
+          alt={participant.name}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          loading="lazy"
         />
-        
+
         {showVotes && (
           <div className="absolute top-2 right-2 z-20 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-rose-500/30 shadow-lg">
             <Heart size={14} className="text-rose-500 fill-rose-500" />
@@ -36,7 +37,7 @@ const Card: React.FC<CardProps> = React.memo(({ participant, onVote, showVotes, 
           </div>
         )}
       </div>
-      
+
       <div className="p-3 space-y-1 bg-gradient-to-b from-slate-800 to-slate-900 flex-1">
         <div className="flex items-center gap-1.5 text-white">
           <User size={14} className="text-amber-400 shrink-0" />
@@ -46,20 +47,20 @@ const Card: React.FC<CardProps> = React.memo(({ participant, onVote, showVotes, 
           <Sparkles size={10} className="text-amber-500/70 shrink-0" />
           {participant.theme}
         </p>
-        
+
         {isVoting && (
           <div className="pt-2">
-            {!hasVoted ? (
-              <button 
-                onClick={() => onVote?.(participant.id)} 
+            {!hasVoted && isVotingOpen ? (
+              <button
+                onClick={() => onVote?.(participant.id)}
                 className="w-full py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl text-xs shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
               >
                 <Heart size={12} />
                 投他一票
               </button>
             ) : (
-              <div className="w-full py-2.5 bg-slate-700/50 text-slate-500 font-bold rounded-xl text-center text-xs border border-slate-700">
-                已投票
+              <div className={`w-full py-2.5 font-bold rounded-xl text-center text-xs border ${!isVotingOpen && !hasVoted ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-slate-700/50 text-slate-500 border-slate-700'}`}>
+                {!isVotingOpen && !hasVoted ? '已截止' : '已投票'}
               </div>
             )}
           </div>

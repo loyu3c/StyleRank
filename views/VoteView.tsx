@@ -8,9 +8,10 @@ interface VoteViewProps {
   participants: Participant[];
   onVote: (id: string) => void;
   hasVoted: boolean;
+  isVotingOpen?: boolean;
 }
 
-const VoteView: React.FC<VoteViewProps> = ({ participants, onVote, hasVoted }) => {
+const VoteView: React.FC<VoteViewProps> = ({ participants, onVote, hasVoted, isVotingOpen = true }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
@@ -71,6 +72,7 @@ const VoteView: React.FC<VoteViewProps> = ({ participants, onVote, hasVoted }) =
                   onVote={() => setSelectedParticipant(p)}
                   hasVoted={hasVoted}
                   isVoting
+                  isVotingOpen={isVotingOpen}
                 // Card component also has showVotes, default is false/undefined which is fine for VoteView
                 />
               </div>
@@ -88,6 +90,7 @@ const VoteView: React.FC<VoteViewProps> = ({ participants, onVote, hasVoted }) =
         onClose={() => setSelectedParticipant(null)}
         onVote={onVote}
         hasVoted={hasVoted}
+        isVotingOpen={isVotingOpen}
         showVotes={false} // Always hide votes in voting view
       />
     </>
