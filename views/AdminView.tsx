@@ -111,6 +111,27 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
         </div>
       </div>
 
+      {/* Tools Section */}
+      <div className="bg-amber-500/5 border border-amber-500/20 p-8 rounded-3xl space-y-6">
+        <div className="flex items-center gap-2 text-amber-400">
+          <PlayCircle size={24} />
+          <h3 className="text-xl font-bold text-amber-500">工具箱</h3>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <button onClick={onSimulateParticipant} className="flex items-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-slate-700 active:scale-95">
+            <UserPlus size={20} /> 模擬新增一位參加者
+          </button>
+
+          <button
+            onClick={onSimulateVotes}
+            disabled={participants.length === 0}
+            className="flex items-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-slate-700 disabled:opacity-50 active:scale-95"
+          >
+            <Fingerprint size={20} /> 隨機產生 5 張選票
+          </button>
+        </div>
+      </div>
+
       <div className="bg-slate-800/30 p-8 rounded-3xl border border-slate-700 text-center">
         <p className="text-slate-500">目前共有 <span className="text-white font-bold">{participants.length}</span> 位參加者，總票數 <span className="text-white font-bold">{participants.reduce((a, b) => a + b.votes, 0)}</span> 票</p>
       </div>
