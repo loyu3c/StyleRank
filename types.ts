@@ -23,6 +23,7 @@ export interface ActivityConfig {
   isRegistrationOpen: boolean;
   isVotingOpen: boolean;
   isResultsRevealed: boolean;
+  luckyDrawWinner?: { empId: string, name: string };
   lastResetTimestamp?: number;
 }
 

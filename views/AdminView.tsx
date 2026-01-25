@@ -107,7 +107,7 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
           <h3 className="text-xl font-bold text-amber-500">工具箱</h3>
         </div>
         <div className="flex flex-wrap gap-4">
-          <LuckyDrawButton />
+          <LuckyDrawButton config={config} onUpdateConfig={onUpdateConfig} />
 
           <button onClick={onSimulateParticipant} className="flex items-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-slate-700 active:scale-95">
             <UserPlus size={20} /> 模擬新增一位參加者
@@ -130,10 +130,24 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
   );
 };
 
-const LuckyDrawButton = () => {
+interface LuckyDrawButtonProps {
+  config: ActivityConfig;
+  onUpdateConfig: (config: ActivityConfig) => void;
+}
+
+const LuckyDrawButton: React.FC<LuckyDrawButtonProps> = ({ config, onUpdateConfig }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [winner, setWinner] = useState<{ empId: string, name: string } | null>(null);
+  const [winner, setWinner] = useState<{ empId: string, name: string } | null>(config.luckyDrawWinner || null);
+
+  // Sync with global config
+  React.useEffect(() => {
+    if (config.luckyDrawWinner) {
+      setWinner(config.luckyDrawWinner);
+    } else {
+      setWinner(null);
+    }
+  }, [config.luckyDrawWinner]);
 
   const handleDraw = async () => {
     setIsDrawing(true);
@@ -154,7 +168,12 @@ const LuckyDrawButton = () => {
           clearInterval(interval);
           // Pick winner
           const randomVote = votes[Math.floor(Math.random() * votes.length)];
-          setWinner({ empId: randomVote.empId, name: randomVote.name });
+          const winnerData = { empId: randomVote.empId, name: randomVote.name };
+          setWinner(winnerData);
+
+          // Save to global config
+          onUpdateConfig({ ...config, luckyDrawWinner: winnerData });
+
           setIsDrawing(false);
           confetti({
             particleCount: 100,
