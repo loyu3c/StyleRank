@@ -25,8 +25,8 @@ export const dataService = {
         const q = query(collection(db, PARTICIPANTS_COLLECTION), orderBy('timestamp', 'asc'));
         return onSnapshot(q, (snapshot) => {
             const participants = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
+                ...doc.data(),
+                id: doc.id
             })) as Participant[];
             callback(participants);
         });
@@ -79,8 +79,10 @@ export const dataService = {
             const entryNumber = snapshot.size + 1;
 
             // 2. 寫入 Firestore
+            // Ensure we don't save the 'id' field if it exists in the passed object
+            const { id, ...participantData } = participant as any;
             await addDoc(collection(db, PARTICIPANTS_COLLECTION), {
-                ...participant,
+                ...participantData,
                 photoUrl,
                 entryNumber,
                 votes: 0, // Mock users start with 0 or random? User asked specifically for "votes also need change", but simulated votes are separate button.
