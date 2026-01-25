@@ -13,12 +13,13 @@ interface ResultsViewProps {
 
 const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal, isAdminLoggedIn = false, config }) => {
   const [isRevealing, setIsRevealing] = useState(false);
-  const [revealIndex, setRevealIndex] = useState(-1);
+  // revealStep: 0=Hidden, 1=3rd, 2=2nd, 3=1st(Champion)
+  const [revealStep, setRevealStep] = useState(0);
   const [showWinners, setShowWinners] = useState(false);
   const [animationStarted, setAnimationStarted] = useState(false);
   const [showLuckyWinner, setShowLuckyWinner] = useState(false);
 
-  // 如果已公布，自動開始播放動畫 (每次進入都播放)
+  // 如果已公布，自動開始播放動畫 (使用快速進場或直接顯示)
   useEffect(() => {
     if (config.isResultsRevealed && !animationStarted) {
       setAnimationStarted(true);
@@ -67,7 +68,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
 
   const runMedalAnimation = () => {
     // Reset states for replay
-    setRevealIndex(-1);
+    setRevealStep(0);
     setShowWinners(false);
     setShowLuckyWinner(false);
 
@@ -76,15 +77,15 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
       setShowWinners(true);
     }, 100);
 
-    // Stage 1: Reveal 3rd place
-    setTimeout(() => setRevealIndex(2), 1000);
+    // Stage 1: Reveal 3rd place (Step 1)
+    setTimeout(() => setRevealStep(1), 1000);
 
-    // Stage 2: Reveal 2nd place
-    setTimeout(() => setRevealIndex(1), 3000);
+    // Stage 2: Reveal 2nd place (Step 2)
+    setTimeout(() => setRevealStep(2), 3000);
 
-    // Stage 3: Reveal 1st place
+    // Stage 3: Reveal 1st place (Step 3)
     setTimeout(() => {
-      setRevealIndex(0);
+      setRevealStep(3);
 
       // Fire confetti
       const end = Date.now() + 3000;
@@ -200,7 +201,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
       )}
 
       {/* Background Effects */}
-      <div className={`fixed inset-0 z-0 transition-opacity duration-1000 pointer-events-none ${revealIndex === 0 ? 'opacity-100' : 'opacity-0'} `}>
+      <div className={`fixed inset-0 z-0 transition-opacity duration-1000 pointer-events-none ${revealStep >= 3 ? 'opacity-100' : 'opacity-0'} `}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-slate-900/50 to-slate-900"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/10 blur-[120px] rounded-full animate-pulse"></div>
       </div>
@@ -218,7 +219,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-4 items-end justify-center relative z-10 min-h-[500px]">
           {/* 2nd Place */}
           {top3[1] && (
-            <div className={`order-2 md:order-1 transition-all duration-1000 transform ${revealIndex >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} `}>
+            <div className={`order-2 md:order-1 transition-all duration-1000 transform ${revealStep >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} `}>
               <div className="flex flex-col items-center">
                 <div className="relative mb-6 group">
                   <div className="absolute inset-0 bg-slate-400 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
@@ -241,11 +242,11 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
 
           {/* 1st Place */}
           {top3[0] && (
-            <div className={`order-1 md:order-2 -mt-12 md:-mt-24 transition-all duration-1000 delay-300 transform ${revealIndex >= 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} `}>
+            <div className={`order-1 md:order-2 -mt-12 md:-mt-24 transition-all duration-1000 delay-300 transform ${revealStep >= 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} `}>
               <div className="flex flex-col items-center">
                 <div className="relative mb-8">
-                  <Crown className={`w-16 h-16 text-yellow-400 fill-yellow-400 absolute -top-12 left-1/2 -translate-x-1/2 drop-shadow-lg z-20 animate-bounce ${revealIndex >= 0 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`} />
-                  <div className={`absolute inset-0 bg-gradient-to-tr from-amber-300 to-yellow-600 rounded-full blur-2xl opacity-40 animate-pulse ${revealIndex >= 0 ? 'opacity-60' : 'opacity-0'} `}></div>
+                  <Crown className={`w-16 h-16 text-yellow-400 fill-yellow-400 absolute -top-12 left-1/2 -translate-x-1/2 drop-shadow-lg z-20 animate-bounce ${revealStep >= 3 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`} />
+                  <div className={`absolute inset-0 bg-gradient-to-tr from-amber-300 to-yellow-600 rounded-full blur-2xl opacity-40 animate-pulse ${revealStep >= 3 ? 'opacity-60' : 'opacity-0'} `}></div>
                   <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-yellow-400 shadow-[0_0_50px_rgba(250,204,21,0.3)] overflow-hidden ring-4 ring-orange-500/30">
                     <img src={top3[0].photoUrl} alt={top3[0].name} className="w-full h-full object-cover" />
                   </div>
@@ -254,7 +255,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
                   </div>
                 </div>
 
-                <div className={`text-center space-y-2 transition-all duration-1000 ${revealIndex >= 0 ? 'transform scale-110' : ''} `}>
+                <div className={`text-center space-y-2 transition-all duration-1000 ${revealStep >= 3 ? 'transform scale-110' : ''} `}>
                   <h3 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-300 drop-shadow-md">{top3[0].name}</h3>
                   <p className="text-amber-400 text-lg font-bold">{top3[0].theme}</p>
                   <div className="flex items-center justify-center gap-2 mt-4">
@@ -269,7 +270,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
 
           {/* 3rd Place */}
           {top3[2] && (
-            <div className={`order-3 md:order-3 transition-all duration-1000 transform ${revealIndex >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} `}>
+            <div className={`order-3 md:order-3 transition-all duration-1000 transform ${revealStep >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} `}>
               <div className="flex flex-col items-center">
                 <div className="relative mb-6 group">
                   <div className="absolute inset-0 bg-amber-700 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
