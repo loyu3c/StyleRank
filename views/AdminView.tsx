@@ -100,26 +100,14 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
         </div>
       </div>
 
-      {/* Tools Section */}
-      <div className="bg-amber-500/5 border border-amber-500/20 p-8 rounded-3xl space-y-6">
-        <div className="flex items-center gap-2 text-amber-400">
-          <PlayCircle size={24} />
-          <h3 className="text-xl font-bold text-amber-500">工具箱</h3>
+      {/* Lucky Draw Section */}
+      <div className="bg-gradient-to-r from-pink-500/10 to-rose-500/10 border border-pink-500/20 p-8 rounded-3xl space-y-6">
+        <div className="flex items-center gap-2 text-pink-400">
+          <Gift size={24} />
+          <h3 className="text-xl font-bold text-pink-500">活動環節</h3>
         </div>
         <div className="flex flex-wrap gap-4">
           <LuckyDrawButton config={config} onUpdateConfig={onUpdateConfig} />
-
-          <button onClick={onSimulateParticipant} className="flex items-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-slate-700 active:scale-95">
-            <UserPlus size={20} /> 模擬新增一位參加者
-          </button>
-
-          <button
-            onClick={onSimulateVotes}
-            disabled={participants.length === 0}
-            className="flex items-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-slate-700 disabled:opacity-50 active:scale-95"
-          >
-            <Fingerprint size={20} /> 隨機產生 5 張選票
-          </button>
         </div>
       </div>
 

@@ -234,7 +234,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
                   <Medal className="w-8 h-8 mx-auto text-slate-300 mb-2" />
                   <h3 className="text-2xl font-bold text-white">{top3[1].name}</h3>
                   <p className="text-slate-400 text-sm font-medium">{top3[1].theme}</p>
-                  <p className="text-slate-500 text-xs font-black tracking-widest mt-2">SILVER WINNER</p>
+                  <p className="text-slate-500 text-xs font-black tracking-widest mt-2">{top3[1] ? "亞軍" : "SILVER WINNER"}</p>
                 </div>
               </div>
             </div>
@@ -260,7 +260,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
                   <p className="text-amber-400 text-lg font-bold">{top3[0].theme}</p>
                   <div className="flex items-center justify-center gap-2 mt-4">
                     <Sparkles className="text-yellow-400 w-5 h-5 animate-spin-slow" />
-                    <p className="text-yellow-500 text-sm font-black tracking-[0.3em]">CHAMPION</p>
+                    <p className="text-yellow-500 text-sm font-black tracking-[0.3em]">冠軍</p>
                     <Sparkles className="text-yellow-400 w-5 h-5 animate-spin-slow" />
                   </div>
                 </div>
@@ -285,7 +285,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
                   <Medal className="w-8 h-8 mx-auto text-amber-700 mb-2" />
                   <h3 className="text-2xl font-bold text-white">{top3[2].name}</h3>
                   <p className="text-slate-400 text-sm font-medium">{top3[2].theme}</p>
-                  <p className="text-slate-500 text-xs font-black tracking-widest mt-2">BRONZE WINNER</p>
+                  <p className="text-slate-500 text-xs font-black tracking-widest mt-2">{top3[2] ? "季軍" : "BRONZE WINNER"}</p>
                 </div>
               </div>
             </div>
@@ -304,7 +304,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
                 <Gift size={32} />
               </div>
 
-              <h3 className="text-pink-400 font-bold tracking-widest text-sm uppercase mb-2">LUCKY DRAW WINNER</h3>
+              <h3 className="text-pink-400 font-bold tracking-widest text-sm uppercase mb-2">幸運參加獎</h3>
               <h4 className="text-3xl font-black text-white mb-2">{config.luckyDrawWinner.name}</h4>
               <p className="text-slate-400 font-mono text-lg">{config.luckyDrawWinner.empId}</p>
 
