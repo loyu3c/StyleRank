@@ -13,6 +13,7 @@ interface RegisterViewProps {
 
 const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onCancel, isOpen }) => {
   const [name, setName] = useState('');
+  const [empId, setEmpId] = useState('');
   const [theme, setTheme] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -35,7 +36,7 @@ const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onCancel, isOpe
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !theme || !photo || !isOpen) {
+    if (!name || !empId || !theme || !photo || !isOpen) {
       setError(isOpen ? '請填寫完整資訊並上傳照片' : '目前非報名時間');
       return;
     }
@@ -45,6 +46,7 @@ const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onCancel, isOpe
       const newParticipant: Participant = {
         id: crypto.randomUUID(),
         name,
+        empId,
         theme,
         photoUrl: photo,
         timestamp: Date.now(),
@@ -112,6 +114,19 @@ const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onCancel, isOpe
           </div>
 
           <div className="space-y-1.5">
+            <label className="text-slate-400 text-sm font-medium ml-1">員工編號</label>
+            <input
+              type="text"
+              value={empId}
+              onChange={(e) => setEmpId(e.target.value)}
+              placeholder="請輸入員編"
+              className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              required
+              disabled={!isOpen}
+            />
+          </div>
+
+          <div className="space-y-1.5">
             <label className="text-slate-400 text-sm font-medium ml-1">服裝主題說明</label>
             <input
               type="text"
@@ -129,8 +144,8 @@ const RegisterView: React.FC<RegisterViewProps> = ({ onRegister, onCancel, isOpe
 
         <button
           type="submit"
-          disabled={isProcessing || !photo || !name || !theme || !isOpen}
-          className={`w-full py-4 rounded-2xl font-bold text-white text-lg flex items-center justify-center gap-2 transition-all shadow-xl ${isProcessing || !photo || !name || !theme || !isOpen ? 'bg-slate-700 cursor-not-allowed text-slate-500' : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-500/20 active:scale-95'}`}
+          disabled={isProcessing || !photo || !name || !empId || !theme || !isOpen}
+          className={`w-full py-4 rounded-2xl font-bold text-white text-lg flex items-center justify-center gap-2 transition-all shadow-xl ${isProcessing || !photo || !name || !empId || !theme || !isOpen ? 'bg-slate-700 cursor-not-allowed text-slate-500' : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-500/20 active:scale-95'}`}
         >
           {isProcessing ? (
             <>

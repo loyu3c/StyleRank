@@ -150,7 +150,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
             <Sparkles className="absolute -top-4 -right-4 text-white animate-pulse" />
           </div>
           <div className="space-y-4">
-            <h2 className="text-5xl font-display text-white tracking-widest">開票大典即將開始</h2>
+            <h2 className="text-5xl font-display text-white tracking-widest">最佳造型獎大PK</h2>
             <p className="text-slate-400 text-xl">準備好見證 2026 最佳造型得主了嗎？</p>
           </div>
 

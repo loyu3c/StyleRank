@@ -4,6 +4,7 @@ export interface Participant {
   name: string;
   theme: string;
   photoUrl: string;
+  empId: string;
   timestamp: number;
   votes: number;
   entryNumber: number;

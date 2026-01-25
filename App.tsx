@@ -74,12 +74,12 @@ const App: React.FC = () => {
     if (!config.isRegistrationOpen) return;
     try {
       // 这里的 newParticipant.photoUrl 其實是 base64，我們需要傳給 dataService 處理上傳
-      const { name, theme, photoUrl } = newParticipant;
+      const { name, empId, theme, photoUrl } = newParticipant;
       if (!photoUrl) return;
 
       // 顯示 loading 或提示 (這裏簡單用 alert，實際上 RegisterView 應該還有 loading state)
       // 注意：這裡直接 await，RegisterView 沒有傳遞這 promise，但沒關係，這會觸發 Firestore 更新
-      await dataService.addParticipant({ name, theme }, photoUrl);
+      await dataService.addParticipant({ name, empId, theme }, photoUrl);
 
       setCurrentView(ViewType.WALL);
       alert('報名成功！照片已上傳至展示牆。');
@@ -158,6 +158,50 @@ const App: React.FC = () => {
       return true;
     }
     return false;
+  };
+
+  // 模擬新增參加者
+  const handleSimulateParticipant = async () => {
+    // Random fake image
+    const getRandomImage = () => {
+      const id = Math.floor(Math.random() * 1000);
+      return `https://picsum.photos/seed/${id}/600/800`;
+    };
+
+    const mock: Participant = {
+      id: crypto.randomUUID(),
+      name: `參賽者 ${Math.floor(Math.random() * 1000)}`,
+      empId: `EMP${Math.floor(Math.random() * 10000)}`,
+      theme: '風格主題測試',
+      photoUrl: getRandomImage(),
+      timestamp: Date.now(),
+      votes: 0,
+      entryNumber: 0
+    };
+
+    try {
+      await dataService.addParticipant(mock, mock.photoUrl);
+    } catch (e) {
+      console.error(e);
+      alert("模擬新增失敗");
+    }
+  };
+
+  // 模擬投票
+  const handleSimulateVotes = async () => {
+    if (participants.length === 0) return;
+    try {
+      for (let i = 0; i < 5; i++) {
+        const randomP = participants[Math.floor(Math.random() * participants.length)];
+        await dataService.voteForParticipant(randomP.id, {
+          empId: `BOT${Math.floor(Math.random() * 9999)}`,
+          name: '機器人'
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      alert("模擬投票失敗");
+    }
   };
 
   const handleLogout = () => {
