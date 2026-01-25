@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Participant, ActivityConfig } from '../types';
-import { Trophy, RefreshCcw, PlayCircle, UserPlus, Fingerprint, Lock, Unlock, Settings2, LogOut, Gift, Sparkles, X } from 'lucide-react';
+import { Trophy, RefreshCcw, PlayCircle, UserPlus, Fingerprint, Lock, Unlock, Settings2, LogOut, Gift, Sparkles, X, Crown } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import confetti from 'canvas-confetti';
 
@@ -86,18 +86,62 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
           </div>
         </div>
 
-        {/* Danger Zone */}
-        <div className="bg-rose-500/5 p-6 rounded-3xl border border-rose-500/20 space-y-4">
-          <h3 className="text-xl font-bold text-rose-500 flex items-center gap-2">危險區域</h3>
-          <p className="text-slate-400 text-sm">重置將永久刪除所有參賽照片與投票數據，請謹慎操作。</p>
-          <button
-            onClick={onReset}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold transition-all"
-          >
-            <RefreshCcw size={20} />
-            重置並清空所有資料
-          </button>
+      </div>
+
+      {/* Live Leaderboard */}
+      <div className="bg-slate-800/50 p-6 rounded-3xl border border-slate-700 space-y-4">
+        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <Trophy className="text-yellow-400" />
+          即時領先榜
+        </h3>
+        <div className="space-y-3">
+          {[...participants]
+            .sort((a, b) => b.votes - a.votes)
+            .slice(0, 5)
+            .map((p, index) => (
+              <div key={p.id} className="flex items-center gap-4 p-3 bg-slate-900/50 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors">
+                <div className={`font-black w-6 text-center ${index === 0 ? 'text-yellow-400 text-xl' :
+                  index === 1 ? 'text-slate-300 text-lg' :
+                    index === 2 ? 'text-amber-700 text-lg' :
+                      'text-slate-500'
+                  }`}>
+                  {index + 1}
+                </div>
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-600">
+                  <img src={p.photoUrl} alt={p.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-white font-bold flex items-center gap-2">
+                    {p.name}
+                    {index === 0 && <Crown size={14} className="text-yellow-400 fill-yellow-400" />}
+                  </div>
+                  <div className="text-xs text-slate-500 font-mono tracking-wider">{p.empId}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-amber-400 font-black text-lg">{p.votes}</div>
+                  <div className="text-[10px] text-slate-600 font-bold uppercase">Votes</div>
+                </div>
+              </div>
+            ))}
+          {participants.length > 0 && participants.length < 5 && (
+            <div className="text-center py-2 text-slate-600 text-xs">
+              - 顯示前 5 名 -
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="bg-rose-500/5 p-6 rounded-3xl border border-rose-500/20 space-y-4 md:col-span-2 lg:col-span-1">
+        <h3 className="text-xl font-bold text-rose-500 flex items-center gap-2">危險區域</h3>
+        <p className="text-slate-400 text-sm">重置將永久刪除所有參賽照片與投票數據，請謹慎操作。</p>
+        <button
+          onClick={onReset}
+          className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold transition-all"
+        >
+          <RefreshCcw size={20} />
+          重置並清空所有資料
+        </button>
       </div>
 
       {/* Lucky Draw Section */}
@@ -135,7 +179,7 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
       <div className="bg-slate-800/30 p-8 rounded-3xl border border-slate-700 text-center">
         <p className="text-slate-500">目前共有 <span className="text-white font-bold">{participants.length}</span> 位參加者，總票數 <span className="text-white font-bold">{participants.reduce((a, b) => a + b.votes, 0)}</span> 票</p>
       </div>
-    </div>
+    </div >
   );
 };
 
