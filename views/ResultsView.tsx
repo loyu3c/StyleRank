@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
-import { Participant } from '../types';
+import { Participant, ActivityConfig } from '../types';
 import { Trophy, Crown, Medal, Star, Sparkles, RefreshCw, Lock } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -7,13 +8,23 @@ interface ResultsViewProps {
   participants: Participant[];
   onFinishReveal: () => void;
   isAdminLoggedIn?: boolean;
+  config: ActivityConfig;
 }
 
-const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal, isAdminLoggedIn = false }) => {
+const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal, isAdminLoggedIn = false, config }) => {
   const [isRevealing, setIsRevealing] = useState(false);
   const [revealIndex, setRevealIndex] = useState(-1);
   const [showWinners, setShowWinners] = useState(false);
   const [animationStarted, setAnimationStarted] = useState(false);
+
+  // 如果已公布，直接顯示結果 (無需動畫等待，或可選擇播放簡易進場)
+  useEffect(() => {
+    if (config.isResultsRevealed) {
+      setAnimationStarted(true);
+      setShowWinners(true);
+      setRevealIndex(0); // Show all
+    }
+  }, [config.isResultsRevealed]);
 
   // Sort participants by votes descending
   const top3 = useMemo(() => {
@@ -21,10 +32,20 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
   }, [participants]);
 
   const startReveal = () => {
+    // Strict Guard
     if (!isAdminLoggedIn) {
       alert("僅限管理員可執行開票！");
       return;
     }
+    if (config.isRegistrationOpen) {
+      alert("請先關閉「照片上傳登記」才可開票！");
+      return;
+    }
+    if (config.isVotingOpen) {
+      alert("請先關閉「記名投票」才可開票！");
+      return;
+    }
+
     if (participants.length === 0) return;
 
     setIsRevealing(true);
@@ -96,8 +117,10 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
     );
   }
 
-  // Initial State: "Start Reveal" Button
-  if (!animationStarted) {
+  // Initial State: "Start Reveal" Button (Only if NOT already revealed)
+  if (!animationStarted && !config.isResultsRevealed) {
+    const canReveal = isAdminLoggedIn && !config.isRegistrationOpen && !config.isVotingOpen;
+
     return (
       <div className="max-w-4xl mx-auto min-h-[70vh] flex flex-col items-center justify-center space-y-12">
         <div className="text-center space-y-8 animate-in fade-in zoom-in duration-700">
@@ -110,20 +133,33 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
             <p className="text-slate-400 text-xl">準備好見證 2026 最佳造型得主了嗎？</p>
           </div>
 
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-4">
             <button
               onClick={startReveal}
-              disabled={!isAdminLoggedIn}
-              className={`px-12 py-5 font-bold text-2xl rounded-3xl shadow-2xl transition-all flex items-center gap-3 ${isAdminLoggedIn
+              disabled={!canReveal}
+              className={`px - 12 py - 5 font - bold text - 2xl rounded - 3xl shadow - 2xl transition - all flex items - center gap - 3 ${canReveal
                   ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-amber-500/20 hover:scale-105'
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                }`}
+                } `}
             >
-              {!isAdminLoggedIn && <Lock size={24} />}
+              {!canReveal && <Lock size={24} />}
               開始揭曉得票
             </button>
-            {!isAdminLoggedIn && (
-              <p className="text-slate-600 text-sm">請先登入後台管理員權限</p>
+            {!canReveal && (
+              <div className="flex flex-col items-center gap-1 text-sm text-slate-500">
+                <p>需滿足以下條件才可開票：</p>
+                <div className="flex gap-4">
+                  <span className={isAdminLoggedIn ? "text-emerald-500" : "text-rose-500"}>
+                    {isAdminLoggedIn ? "✓ 管理員已登入" : "✗ 管理員未登入"}
+                  </span>
+                  <span className={!config.isRegistrationOpen ? "text-emerald-500" : "text-rose-500"}>
+                    {!config.isRegistrationOpen ? "✓ 報名已截止" : "✗ 報名開放中"}
+                  </span>
+                  <span className={!config.isVotingOpen ? "text-emerald-500" : "text-rose-500"}>
+                    {!config.isVotingOpen ? "✓ 投票已截止" : "✗ 投票開放中"}
+                  </span>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -144,12 +180,12 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
       )}
 
       {/* Background Effects */}
-      <div className={`fixed inset-0 z-0 transition-opacity duration-1000 pointer-events-none ${revealIndex === 0 ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`fixed inset - 0 z - 0 transition - opacity duration - 1000 pointer - events - none ${revealIndex === 0 ? 'opacity-100' : 'opacity-0'} `}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-slate-900/50 to-slate-900"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/10 blur-[120px] rounded-full animate-pulse"></div>
       </div>
 
-      <div className={`text-center space-y-4 mb-16 relative z-10 transition-opacity duration-1000 ${showWinners ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`text - center space - y - 4 mb - 16 relative z - 10 transition - opacity duration - 1000 ${showWinners ? 'opacity-100' : 'opacity-0'} `}>
         <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-amber-300 to-amber-600 rounded-2xl shadow-lg shadow-amber-500/20 mb-4 animate-bounce">
           <Trophy size={40} className="text-white fill-white" />
         </div>
@@ -162,7 +198,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 items-end justify-center relative z-10 min-h-[500px]">
           {/* 2nd Place */}
           {top3[1] && (
-            <div className={`order-2 md:order-1 transition-all duration-1000 transform ${revealIndex >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
+            <div className={`order - 2 md: order - 1 transition - all duration - 1000 transform ${revealIndex >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} `}>
               <div className="flex flex-col items-center">
                 <div className="relative mb-6 group">
                   <div className="absolute inset-0 bg-slate-400 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
@@ -185,11 +221,11 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
 
           {/* 1st Place */}
           {top3[0] && (
-            <div className={`order-1 md:order-2 -mt-12 md:-mt-24 transition-all duration-1000 delay-300 transform ${revealIndex >= 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+            <div className={`order - 1 md: order - 2 - mt - 12 md: -mt - 24 transition - all duration - 1000 delay - 300 transform ${revealIndex >= 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} `}>
               <div className="flex flex-col items-center">
                 <div className="relative mb-8">
-                  <Crown className={`w-16 h-16 text-yellow-400 fill-yellow-400 absolute -top-12 left-1/2 -translate-x-1/2 drop-shadow-lg z-20 animate-bounce ${revealIndex >= 0 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`} />
-                  <div className={`absolute inset-0 bg-gradient-to-tr from-amber-300 to-yellow-600 rounded-full blur-2xl opacity-40 animate-pulse ${revealIndex >= 0 ? 'opacity-60' : 'opacity-0'}`}></div>
+                  <Crown className={`w - 16 h - 16 text - yellow - 400 fill - yellow - 400 absolute - top - 12 left - 1 / 2 - translate - x - 1 / 2 drop - shadow - lg z - 20 animate - bounce ${revealIndex >= 0 ? 'opacity-100' : 'opacity-0'} transition - opacity duration - 1000`} />
+                  <div className={`absolute inset - 0 bg - gradient - to - tr from - amber - 300 to - yellow - 600 rounded - full blur - 2xl opacity - 40 animate - pulse ${revealIndex >= 0 ? 'opacity-60' : 'opacity-0'} `}></div>
                   <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-yellow-400 shadow-[0_0_50px_rgba(250,204,21,0.3)] overflow-hidden ring-4 ring-orange-500/30">
                     <img src={top3[0].photoUrl} alt={top3[0].name} className="w-full h-full object-cover" />
                   </div>
@@ -198,7 +234,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
                   </div>
                 </div>
 
-                <div className={`text-center space-y-2 transition-all duration-1000 ${revealIndex >= 0 ? 'transform scale-110' : ''}`}>
+                <div className={`text - center space - y - 2 transition - all duration - 1000 ${revealIndex >= 0 ? 'transform scale-110' : ''} `}>
                   <h3 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-300 drop-shadow-md">{top3[0].name}</h3>
                   <p className="text-amber-400 text-lg font-bold">{top3[0].theme}</p>
                   <div className="flex items-center justify-center gap-2 mt-4">
@@ -213,7 +249,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
 
           {/* 3rd Place */}
           {top3[2] && (
-            <div className={`order-3 md:order-3 transition-all duration-1000 transform ${revealIndex >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
+            <div className={`order - 3 md: order - 3 transition - all duration - 1000 transform ${revealIndex >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} `}>
               <div className="flex flex-col items-center">
                 <div className="relative mb-6 group">
                   <div className="absolute inset-0 bg-amber-700 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>

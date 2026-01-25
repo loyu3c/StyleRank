@@ -21,6 +21,7 @@ export enum ViewType {
 
 export interface ActivityConfig {
   isRegistrationOpen: boolean;
+  isVotingOpen: boolean;
   isResultsRevealed: boolean;
   lastResetTimestamp?: number;
 }

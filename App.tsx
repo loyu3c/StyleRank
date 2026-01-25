@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [hasVoted, setHasVoted] = useState<boolean>(false);
   const [config, setConfig] = useState<ActivityConfig>({
     isRegistrationOpen: true,
+    isVotingOpen: true,
     isResultsRevealed: false
   });
 
@@ -90,6 +91,10 @@ const App: React.FC = () => {
 
   const handleVote = useCallback(async (participantId: string, voterInfo?: { empId: string, name: string }) => {
     if (hasVoted) return;
+    if (!config.isVotingOpen) {
+      alert('投票已截止！');
+      return;
+    }
     try {
       await dataService.voteForParticipant(participantId, voterInfo);
       setHasVoted(true);
@@ -203,10 +208,12 @@ const App: React.FC = () => {
       case ViewType.RESULTS: return (
         <ResultsView
           participants={participants}
+          config={config}
           onFinishReveal={() => {
             updateConfig({ ...config, isResultsRevealed: true });
             fireConfetti();
           }}
+          isAdminLoggedIn={isAdminLoggedIn}
         />
       );
       default: return <HomeView onNavigate={handleNavigate} config={config} />;

@@ -39,7 +39,7 @@ export const dataService = {
                 callback(doc.data() as ActivityConfig);
             } else {
                 // 設定默認值
-                callback({ isRegistrationOpen: true, isResultsRevealed: false });
+                callback({ isRegistrationOpen: true, isVotingOpen: true, isResultsRevealed: false });
             }
         });
     },
@@ -124,6 +124,7 @@ export const dataService = {
         const configRef = doc(db, CONFIG_COLLECTION, CONFIG_DOC_ID);
         batch.set(configRef, {
             isRegistrationOpen: true,
+            isVotingOpen: true,
             isResultsRevealed: false,
             lastResetTimestamp: Date.now() // Record reset time
         });

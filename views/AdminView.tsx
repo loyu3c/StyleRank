@@ -57,6 +57,21 @@ const AdminView: React.FC<AdminViewProps> = ({ participants, config, onUpdateCon
 
             <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-700">
               <div>
+                <p className="text-white font-bold">開放記名投票</p>
+                <p className="text-slate-500 text-xs">關閉後將無法進行投票</p>
+              </div>
+              <button
+                onClick={() => onUpdateConfig({ ...config, isVotingOpen: !config.isVotingOpen })}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all ${config.isVotingOpen ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                  }`}
+              >
+                {config.isVotingOpen ? <Unlock size={18} /> : <Lock size={18} />}
+                {config.isVotingOpen ? '投票中' : '已截止'}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-700">
+              <div>
                 <p className="text-white font-bold">公布投票結果</p>
                 <p className="text-slate-500 text-xs">開啟後照片牆將顯示每個人票數</p>
               </div>
