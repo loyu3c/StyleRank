@@ -223,7 +223,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
           <Trophy size={40} className="text-white fill-white" />
         </div>
         <h2 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 tracking-tight drop-shadow-sm">
-          榮耀時刻
+          最佳造型獎得主
         </h2>
       </div>
 
