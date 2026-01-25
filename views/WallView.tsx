@@ -109,7 +109,6 @@ const WallView: React.FC<WallViewProps> = ({ participants, showVotes = false, on
             </div>
 
             {/* Depth Overlays */}
-            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#0a0f1a] via-[#0a0f1a]/60 to-transparent z-10 pointer-events-none" />
             <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/60 to-transparent z-10 pointer-events-none" />
 
             {/* Edge Glow */}
