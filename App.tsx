@@ -119,19 +119,7 @@ const App: React.FC = () => {
     await dataService.updateConfig(newConfig);
   };
 
-  // 模擬功能 (保留但改寫為寫入 Firebase)
-  const simulateParticipant = async () => {
-    alert("模擬功能需配合真實圖片上傳邏輯，目前停用。");
-  };
 
-  const simulateVotes = async (count: number = 5) => {
-    if (participants.length === 0) return;
-    // 隨機投 5 票
-    for (let i = 0; i < count; i++) {
-      const randomP = participants[Math.floor(Math.random() * participants.length)];
-      await dataService.voteForParticipant(randomP.id);
-    }
-  };
 
   // 處理導航切換 (含權限驗證)
   const handleNavigate = (view: ViewType) => {
@@ -244,8 +232,8 @@ const App: React.FC = () => {
         <AdminView
           participants={participants}
           onReset={resetData}
-          onSimulateParticipant={simulateParticipant}
-          onSimulateVotes={() => simulateVotes(5)}
+          onSimulateParticipant={handleSimulateParticipant}
+          onSimulateVotes={handleSimulateVotes}
           config={config}
           onUpdateConfig={updateConfig}
           onLogout={handleLogout}
