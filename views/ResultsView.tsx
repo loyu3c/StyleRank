@@ -113,9 +113,19 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
       }());
     }, 5000);
 
-    // Stage 4: Reveal Lucky Winner (if exists)
-    if (config.luckyDrawWinner) {
-      setTimeout(() => {
+    // Stage 4: Reveal Lucky Winner (handled by side-effect below now to support late updates)
+  };
+
+  // 獨立監聽幸運得主更新，確保即使動畫跑完後才抽獎也能顯示
+  useEffect(() => {
+    if (config.isResultsRevealed && config.luckyDrawWinner && !showLuckyWinner) {
+      // 如果主要動畫已經跑到揭曉冠軍 (Step 3)，延遲一下就顯示幸運獎
+      // 如果還沒跑完，等 runMedalAnimation 自然跑完後，此 effect 依舊會觸發 (因為 showLuckyWinner 還是 false)
+      // 但為了避免干擾主動畫，我們可以檢測 revealStep
+
+      const delay = revealStep >= 3 ? 1000 : 8000; // 如果已經播完冠軍，就快點顯示；否則給長一點延遲隨主流程
+
+      const timer = setTimeout(() => {
         setShowLuckyWinner(true);
         confetti({
           particleCount: 100,
@@ -123,9 +133,11 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
           origin: { y: 0.8 },
           colors: ['#ec4899', '#f43f5e']
         });
-      }, 8000);
+      }, delay);
+
+      return () => clearTimeout(timer);
     }
-  };
+  }, [config.luckyDrawWinner, config.isResultsRevealed, revealStep, showLuckyWinner]);
 
   if (participants.length === 0) {
     return (
