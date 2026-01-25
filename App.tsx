@@ -243,8 +243,25 @@ const App: React.FC = () => {
         <ResultsView
           participants={participants}
           config={config}
-          onFinishReveal={() => {
-            updateConfig({ ...config, isResultsRevealed: true });
+          onFinishReveal={async () => {
+            let newConfig = { ...config, isResultsRevealed: true };
+
+            // 自動抽獎邏輯：如果目前沒有得主，就自動抽一位
+            if (!config.luckyDrawWinner) {
+              try {
+                const votes = await dataService.getAllVotes();
+                if (votes.length > 0) {
+                  const randomVote = votes[Math.floor(Math.random() * votes.length)];
+                  const winner = { empId: randomVote.empId, name: randomVote.name };
+                  newConfig = { ...newConfig, luckyDrawWinner: winner };
+                  console.log("Auto-drew lucky winner:", winner);
+                }
+              } catch (e) {
+                console.error("Auto-draw failed:", e);
+              }
+            }
+
+            updateConfig(newConfig);
             fireConfetti();
           }}
           isAdminLoggedIn={isAdminLoggedIn}
