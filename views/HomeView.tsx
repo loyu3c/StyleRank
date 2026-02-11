@@ -19,7 +19,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, config }) => {
           <Star className="text-amber-400 fill-amber-400 w-12 h-12 animate-bounce" />
         </div>
         <h2 className="text-4xl md:text-6xl font-display text-white tracking-widest leading-tight">
-          2026 歡樂蹦迪爺總會<br />最佳造型獎大PK
+          2026 歡樂蹦迪爺總會 老爺春酒晚會<br />線上造型大PK
         </h2>
         <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto">
           展現您的非凡風格！掃描 QR Code 參加造型大賽，或為您支持的佳麗與帥哥投下一票！
