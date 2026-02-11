@@ -52,7 +52,7 @@ const WallView: React.FC<WallViewProps> = ({ participants, showVotes = false, on
               </div>
               <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">大PK 實況牆</h2>
             </div>
-            <p className="text-slate-400 text-xs md:text-sm font-medium">礁溪老爺大酒店 2026 造型PK賽現況</p>
+            <p className="text-slate-400 text-xs md:text-sm font-medium">歡樂蹦迪爺總會 2026 造型PK賽現況</p>
           </div>
 
           <div className="flex items-center gap-3">
