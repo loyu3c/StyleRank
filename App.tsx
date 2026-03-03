@@ -276,7 +276,7 @@ const App: React.FC = () => {
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#0f172a]/90 backdrop-blur-lg border-b border-slate-800 z-50 hidden md:flex items-center justify-between px-8">
         <div className="flex items-center gap-3">
           <Star className="text-amber-400 fill-amber-400 w-6 h-6" />
-          <h1 className="font-display text-2xl tracking-widest text-white">2026 礁溪老爺大酒店</h1>
+          <h1 className="font-display text-2xl tracking-widest text-white">2026 歡樂蹦迪爺總會 線上造型大PK</h1>
         </div>
         <nav className="flex items-center gap-2">
           <NavItem active={currentView === ViewType.HOME} onClick={() => handleNavigate(ViewType.HOME)} icon={<Home size={18} />} label="首頁" />
