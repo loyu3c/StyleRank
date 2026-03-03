@@ -24,7 +24,7 @@ const WallView: React.FC<WallViewProps> = ({ participants, showVotes = false, on
   const displayParticipants = useMemo(() => {
     const sorted = [...participants].sort((a, b) => b.timestamp - a.timestamp);
     // Duplicate the list twice (original + clone) for a seamless infinite loop
-    if (sorted.length > 8) {
+    if (sorted.length > 4) {
       return [...sorted, ...sorted];
     }
     return sorted;
@@ -38,7 +38,7 @@ const WallView: React.FC<WallViewProps> = ({ participants, showVotes = false, on
     return Math.max(rows * baseSpeed, 20);
   }, [participants.length]);
 
-  const isScrolling = participants.length > 10;
+  const isScrolling = participants.length > 4;
 
   return (
     <>
