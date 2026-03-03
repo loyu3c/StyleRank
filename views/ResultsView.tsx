@@ -163,7 +163,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
           </div>
           <div className="space-y-4">
             <h2 className="text-5xl font-display text-white tracking-widest">最佳造型獎大PK</h2>
-            <p className="text-slate-400 text-xl">準備好見證 2026 最佳造型得主了嗎？</p>
+            <p className="text-slate-400 text-xl">準備好見證 2026 最佳造型得主了嗎？ </p>
           </div>
 
           <div className="flex flex-col items-center gap-4">
