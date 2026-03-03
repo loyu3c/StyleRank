@@ -228,7 +228,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
       </div>
 
       {showWinners && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-4 items-end justify-center relative z-10 min-h-[400px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-4 items-end justify-center relative z-10 min-h-[400px] mt-[50px]">
           {/* 2nd Place */}
           {top3[1] && (
             <div className={`order-2 md:order-1 transition-all duration-1000 transform ${revealStep >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} `}>
