@@ -218,17 +218,17 @@ const ResultsView: React.FC<ResultsViewProps> = ({ participants, onFinishReveal,
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/10 blur-[120px] rounded-full animate-pulse"></div>
       </div>
 
-      <div className={`text-center space-y-4 mb-24 relative z-10 transition-opacity duration-1000 ${showWinners ? 'opacity-100' : 'opacity-0'} `}>
-        <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-amber-300 to-amber-600 rounded-2xl shadow-lg shadow-amber-500/20 mb-4 animate-bounce">
+      <div className={`text-center space-y-4 mb-6 md:mb-10 relative z-10 transition-opacity duration-1000 ${showWinners ? 'opacity-100' : 'opacity-0'} `}>
+        <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-amber-300 to-amber-600 rounded-2xl shadow-lg shadow-amber-500/20 mb-2 md:mb-4 animate-bounce">
           <Trophy size={40} className="text-white fill-white" />
         </div>
-        <h2 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 tracking-tight drop-shadow-sm">
+        <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 tracking-tight drop-shadow-sm">
           最佳造型獎得主
         </h2>
       </div>
 
       {showWinners && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-4 items-end justify-center relative z-10 min-h-[500px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-4 items-end justify-center relative z-10 min-h-[400px]">
           {/* 2nd Place */}
           {top3[1] && (
             <div className={`order-2 md:order-1 transition-all duration-1000 transform ${revealStep >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'} `}>
