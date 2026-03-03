@@ -89,23 +89,25 @@ const WallView: React.FC<WallViewProps> = ({ participants, showVotes = false, on
         {participants.length > 0 ? (
           <div className="relative flex-1 overflow-hidden rounded-3xl bg-slate-900/20 border border-slate-800/50">
             {/* Scrollable Container */}
-            <div
-              className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-4 p-2 md:p-4 will-change-transform ${isScrolling ? 'animate-wall-crawl' : ''}`}
-              style={{
-                animationDuration: `${animationDuration}s`,
-                animationTimingFunction: 'linear',
-                animationIterationCount: 'infinite'
-              }}
-            >
-              {displayParticipants.map((p, index) => (
-                <div
-                  key={`${p.id}-${index}`}
-                  className="transform-gpu transition-transform duration-300 hover:scale-[1.02] hover:z-10 cursor-pointer"
-                  onClick={() => setSelectedParticipant(p)}
-                >
-                  <Card participant={p} showVotes={showVotes} />
-                </div>
-              ))}
+            <div className="absolute inset-0 overflow-y-auto md:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <div
+                className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-4 p-2 md:p-4 md:will-change-transform ${isScrolling ? 'animate-wall-crawl' : ''}`}
+                style={{
+                  animationDuration: `${animationDuration}s`,
+                  animationTimingFunction: 'linear',
+                  animationIterationCount: 'infinite'
+                }}
+              >
+                {displayParticipants.map((p, index) => (
+                  <div
+                    key={`${p.id}-${index}`}
+                    className={`transform-gpu transition-transform duration-300 hover:scale-[1.02] hover:z-10 cursor-pointer ${index >= participants.length ? 'hidden md:block' : ''}`}
+                    onClick={() => setSelectedParticipant(p)}
+                  >
+                    <Card participant={p} showVotes={showVotes} />
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Depth Overlays */}
@@ -140,16 +142,17 @@ const WallView: React.FC<WallViewProps> = ({ participants, showVotes = false, on
               transform: translate3d(0, -50%, 0);
             }
           }
-          .animate-wall-crawl {
-            animation-name: wall-crawl;
-          }
-          .animate-wall-crawl:hover {
-            animation-play-state: paused;
+          @media (min-width: 768px) {
+            .animate-wall-crawl {
+              animation-name: wall-crawl;
+            }
+            .animate-wall-crawl:hover {
+              animation-play-state: paused;
+            }
           }
           @media (prefers-reduced-motion: reduce) {
             .animate-wall-crawl {
               animation: none;
-              overflow-y: auto;
             }
           }
         `}</style>
